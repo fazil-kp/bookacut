@@ -1,6 +1,7 @@
 {
   "name": "bookacut-frontend",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "description": "Multi-Tenant SaaS Beauty Parlour & Barber Shop Management System - Frontend",
   "dependencies": {
