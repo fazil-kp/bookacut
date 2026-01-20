@@ -40,24 +40,11 @@ import BookingHistory from './pages/customer/BookingHistory';
 function AppRoutes() {
   const { user } = useAuthStore();
   const platform = isPlatformDomain();
-  const { isLoading: tenantLoading, isError: tenantError } = useTenantInitialization();
+  const { isLoading: tenantLoading } = useTenantInitialization();
 
   // On client domains, wait for tenant resolution before rendering app
   if (!platform && tenantLoading) {
     return <Loading fullScreen />;
-  }
-
-  if (!platform && tenantError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md text-center space-y-4">
-          <h1 className="text-2xl font-bold text-gray-900">Salon not found</h1>
-          <p className="text-gray-600">
-            We couldn't find a salon configured for this domain. Please check the URL or contact support.
-          </p>
-        </div>
-      </div>
-    );
   }
 
   return (
