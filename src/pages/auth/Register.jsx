@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../store/authStore';
+import { useTenantStore } from '../../store/tenantStore';
+import { isPlatformDomain } from '../../utils/domain';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
@@ -10,17 +12,32 @@ import toast from 'react-hot-toast';
 const Register = () => {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
+  const { tenant } = useTenantStore();
+  const platform = isPlatformDomain();
   const { register, handleSubmit, formState: { errors }, watch } = useForm();
 
   const password = watch('password');
 
   const registerMutation = useMutation({
-    mutationFn: (data) => authService.register(data),
+    mutationFn: (data) => {
+      const payload = { ...data };
+      // On client domains, attach databaseName so backend can route to correct client DB
+      if (!platform && tenant?.databaseName) {
+        payload.databaseName = tenant.databaseName;
+      }
+      return authService.register(payload);
+    },
     onSuccess: (data) => {
       const { user, token } = data;
       setAuth(user, token);
       toast.success('Registration successful!');
-      navigate('/customer/services');
+      // Customer registration flow on client domains
+      if (!platform) {
+        navigate('/customer/services');
+      } else {
+        // Platform should generally not use this screen, but keep a sane default
+        navigate('/super-admin/dashboard');
+      }
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Registration failed');

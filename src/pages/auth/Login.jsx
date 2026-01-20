@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -7,11 +6,13 @@ import { useAuthStore } from '../../store/authStore';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
+import { isPlatformDomain } from '../../utils/domain';
 
 const Login = () => {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const platform = isPlatformDomain();
 
   const loginMutation = useMutation({
     mutationFn: (data) => authService.login(data.email, data.password),
@@ -19,16 +20,31 @@ const Login = () => {
       const { user, token } = data;
       setAuth(user, token);
       toast.success('Login successful!');
-      
-      // Redirect based on role
-      const rolePath = {
-        super_admin: '/super-admin/dashboard',
-        client_admin: '/client-admin/dashboard',
-        staff: '/staff/dashboard',
-        customer: '/customer/services',
-      };
-      
-      navigate(rolePath[user.role] || '/');
+
+      // Redirect based on role and current domain
+      const role = user.role;
+
+      if (platform) {
+        // Platform domain is only for platform super admins
+        if (role === 'super_admin' || role === 'platform_super_admin') {
+          navigate('/super-admin/dashboard');
+        } else {
+          toast.error('This domain is only for platform administrators.');
+          navigate('/login');
+        }
+        return;
+      }
+
+      // Client domains
+      if (role === 'client_admin') {
+        navigate('/admin/dashboard');
+      } else if (role === 'staff') {
+        navigate('/staff/dashboard');
+      } else if (role === 'customer') {
+        navigate('/customer/services');
+      } else {
+        navigate('/');
+      }
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Login failed');

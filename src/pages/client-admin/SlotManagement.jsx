@@ -10,13 +10,19 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { useAuthStore } from '../../store/authStore';
 
 const SlotManagement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const { user } = useAuthStore();
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register: registerBlock, handleSubmit: handleSubmitBlock, formState: { errors: blockErrors }, reset: resetBlock } =
+    useForm();
 
   const { data, isLoading } = useQuery({
     queryKey: ['slots', id],
@@ -28,16 +34,48 @@ const SlotManagement = () => {
     onSuccess: () => {
       toast.success('Slots generated successfully!');
       queryClient.invalidateQueries(['slots', id]);
-      setIsModalOpen(false);
+      setIsGenerateModalOpen(false);
       reset();
     },
   });
 
-  const onSubmit = (data) => {
+  const blockSlotMutation = useMutation({
+    mutationFn: ({ slotId, reason }) => clientAdminService.blockSlot(id, slotId, reason),
+    onSuccess: (data) => {
+      const { cancelledCount } = data || {};
+      toast.success(
+        cancelledCount && cancelledCount > 0
+          ? `Slot blocked. ${cancelledCount} existing booking(s) were cancelled.`
+          : 'Slot blocked successfully.'
+      );
+      queryClient.invalidateQueries(['slots', id]);
+      setIsBlockModalOpen(false);
+      setSelectedSlot(null);
+      resetBlock();
+    },
+  });
+
+  const unblockSlotMutation = useMutation({
+    mutationFn: (slotId) => clientAdminService.unblockSlot(id, slotId),
+    onSuccess: () => {
+      toast.success('Slot unblocked successfully.');
+      queryClient.invalidateQueries(['slots', id]);
+      setIsBlockModalOpen(false);
+      setSelectedSlot(null);
+      resetBlock();
+    },
+  });
+
+  const onGenerateSubmit = (data) => {
     generateSlotsMutation.mutate({
       startDate: data.startDate,
       endDate: data.endDate,
     });
+  };
+
+  const onBlockSubmit = (data) => {
+    if (!selectedSlot) return;
+    blockSlotMutation.mutate({ slotId: selectedSlot._id, reason: data.reason });
   };
 
   if (isLoading) return <Loading fullScreen />;
@@ -48,12 +86,12 @@ const SlotManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <Button variant="secondary" onClick={() => navigate(`/client-admin/shops/${id}`)}>
+          <Button variant="secondary" onClick={() => navigate(`/admin/shops/${id}`)}>
             ← Back
           </Button>
           <h1 className="text-2xl font-bold text-gray-900">Slot Management</h1>
         </div>
-        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+        <Button variant="primary" onClick={() => setIsGenerateModalOpen(true)}>
           Generate Slots
         </Button>
       </div>
@@ -100,11 +138,31 @@ const SlotManagement = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    {slot.status === 'available' && (
-                      <button className="text-red-600 hover:text-red-900">Block</button>
-                    )}
-                    {slot.status === 'blocked' && (
-                      <button className="text-green-600 hover:text-green-900">Unblock</button>
+                    {user?.role === 'client_admin' && (
+                      <>
+                        {slot.status === 'available' && (
+                          <button
+                            className="text-red-600 hover:text-red-900"
+                            onClick={() => {
+                              setSelectedSlot(slot);
+                              setIsBlockModalOpen(true);
+                            }}
+                          >
+                            Block
+                          </button>
+                        )}
+                        {slot.status === 'blocked' && (
+                          <button
+                            className="text-green-600 hover:text-green-900"
+                            onClick={() => {
+                              setSelectedSlot(slot);
+                              setIsBlockModalOpen(true);
+                            }}
+                          >
+                            Unblock
+                          </button>
+                        )}
+                      </>
                     )}
                   </td>
                 </tr>
@@ -114,15 +172,16 @@ const SlotManagement = () => {
         </div>
       </Card>
 
+      {/* Generate slots modal */}
       <Modal
-        isOpen={isModalOpen}
+        isOpen={isGenerateModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          setIsGenerateModalOpen(false);
           reset();
         }}
         title="Generate Slots"
       >
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onGenerateSubmit)}>
           <Input
             label="Start Date"
             type="date"
@@ -147,7 +206,7 @@ const SlotManagement = () => {
               type="button"
               variant="secondary"
               onClick={() => {
-                setIsModalOpen(false);
+                setIsGenerateModalOpen(false);
                 reset();
               }}
             >
@@ -155,6 +214,95 @@ const SlotManagement = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Block / Unblock slot modal */}
+      <Modal
+        isOpen={isBlockModalOpen && !!selectedSlot}
+        onClose={() => {
+          setIsBlockModalOpen(false);
+          setSelectedSlot(null);
+          resetBlock();
+        }}
+        title={selectedSlot?.status === 'blocked' ? 'Unblock Slot' : 'Block Slot'}
+      >
+        {selectedSlot && (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              {selectedSlot.status === 'blocked'
+                ? 'Unblock this slot to make it available for new bookings.'
+                : 'Blocking this slot will cancel all active bookings on this slot.'}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Date:</span>{' '}
+              {format(new Date(selectedSlot.startTime), 'MMM dd, yyyy')}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Time:</span>{' '}
+              {format(new Date(selectedSlot.startTime), 'hh:mm a')} -{' '}
+              {format(new Date(selectedSlot.endTime), 'hh:mm a')}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Current bookings:</span>{' '}
+              {selectedSlot.bookings?.length || 0}
+            </p>
+
+            {selectedSlot.status !== 'blocked' && (
+              <form onSubmit={handleSubmitBlock(onBlockSubmit)} className="space-y-4">
+                <Input
+                  label="Reason (optional)"
+                  type="text"
+                  {...registerBlock('reason')}
+                  error={blockErrors.reason?.message}
+                />
+                <div className="flex space-x-4 mt-2">
+                  <Button
+                    type="submit"
+                    variant="danger"
+                    disabled={blockSlotMutation.isPending}
+                  >
+                    {blockSlotMutation.isPending ? 'Blocking...' : 'Confirm Block'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setIsBlockModalOpen(false);
+                      setSelectedSlot(null);
+                      resetBlock();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
+
+            {selectedSlot.status === 'blocked' && (
+              <div className="flex space-x-4 mt-4">
+                <Button
+                  type="button"
+                  variant="primary"
+                  disabled={unblockSlotMutation.isPending}
+                  onClick={() => unblockSlotMutation.mutate(selectedSlot._id)}
+                >
+                  {unblockSlotMutation.isPending ? 'Unblocking...' : 'Confirm Unblock'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setIsBlockModalOpen(false);
+                    setSelectedSlot(null);
+                    resetBlock();
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );

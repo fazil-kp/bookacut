@@ -1,45 +1,52 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { USER_ROLES } from '../../utils/constants';
+import { isPlatformDomain } from '../../utils/domain';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuthStore();
   const location = useLocation();
+
+  const platform = isPlatformDomain();
 
   const getNavItems = () => {
     if (!user) return [];
 
     const role = user.role;
 
-    if (role === USER_ROLES.SUPER_ADMIN) {
+    // PLATFORM DOMAIN: platform super admin
+    if (platform && (role === USER_ROLES.SUPER_ADMIN || role === USER_ROLES.PLATFORM_SUPER_ADMIN)) {
       return [
         { path: '/super-admin/dashboard', label: 'Dashboard', icon: '📊' },
         { path: '/super-admin/tenants', label: 'Tenants', icon: '🏢' },
       ];
     }
 
-    if (role === USER_ROLES.CLIENT_ADMIN) {
-      return [
-        { path: '/client-admin/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/client-admin/shops', label: 'Shops', icon: '🏪' },
-        { path: '/client-admin/invoices', label: 'Invoices', icon: '📄' },
-      ];
-    }
+    // CLIENT DOMAIN: client admin / staff / customer
+    if (!platform) {
+      if (role === USER_ROLES.CLIENT_ADMIN) {
+        return [
+          { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
+          { path: '/admin/shops', label: 'Shops', icon: '🏪' },
+          { path: '/admin/invoices', label: 'Invoices', icon: '📄' },
+        ];
+      }
 
-    if (role === USER_ROLES.STAFF) {
-      return [
-        { path: '/staff/dashboard', label: 'Dashboard', icon: '📊' },
-        { path: '/staff/bookings', label: 'Bookings', icon: '📅' },
-        { path: '/staff/walkin', label: 'Walk-in Booking', icon: '➕' },
-        { path: '/staff/invoices', label: 'Invoices', icon: '📄' },
-      ];
-    }
+      if (role === USER_ROLES.STAFF) {
+        return [
+          { path: '/staff/dashboard', label: 'Dashboard', icon: '📊' },
+          { path: '/staff/bookings', label: 'Bookings', icon: '📅' },
+          { path: '/staff/walkin', label: 'Walk-in Booking', icon: '➕' },
+          { path: '/staff/invoices', label: 'Invoices', icon: '📄' },
+        ];
+      }
 
-    if (role === USER_ROLES.CUSTOMER) {
-      return [
-        { path: '/customer/services', label: 'Services', icon: '💇' },
-        { path: '/customer/bookings', label: 'My Bookings', icon: '📅' },
-      ];
+      if (role === USER_ROLES.CUSTOMER) {
+        return [
+          { path: '/customer/services', label: 'Services', icon: '💇' },
+          { path: '/customer/bookings', label: 'My Bookings', icon: '📅' },
+        ];
+      }
     }
 
     return [];

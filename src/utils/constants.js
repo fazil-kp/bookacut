@@ -1,8 +1,12 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+// API endpoints
+// For multi-tenant setup we default to relative /api, so each domain hits its own tenant-aware backend.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || window.location.origin;
 
 export const USER_ROLES = {
+  // Support both legacy and new naming for platform super admin
   SUPER_ADMIN: 'super_admin',
+  PLATFORM_SUPER_ADMIN: 'platform_super_admin',
   CLIENT_ADMIN: 'client_admin',
   STAFF: 'staff',
   CUSTOMER: 'customer',
