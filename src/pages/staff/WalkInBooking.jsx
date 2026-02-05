@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { staffService } from '../../services/staffService';
-import { clientAdminService } from '../../services/clientAdminService';
+import { customerService } from '../../services/customerService';
 import { useShopStore } from '../../store/shopStore';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -20,13 +20,13 @@ const WalkInBooking = () => {
 
   const { data: servicesData, isLoading: servicesLoading } = useQuery({
     queryKey: ['services', shopId],
-    queryFn: () => clientAdminService.getServices(shopId),
+    queryFn: () => customerService.getShopServices(shopId),
     enabled: !!shopId,
   });
 
   const { data: slotsData, isLoading: slotsLoading } = useQuery({
     queryKey: ['slots', shopId],
-    queryFn: () => clientAdminService.getSlots(shopId, { date: new Date().toISOString().split('T')[0] }),
+    queryFn: () => customerService.getAvailableSlots(shopId, { date: new Date().toISOString().split('T')[0] }),
     enabled: !!shopId,
   });
 

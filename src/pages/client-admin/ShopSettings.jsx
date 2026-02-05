@@ -46,7 +46,7 @@ const ShopSettings = () => {
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center space-x-4">
-        <Button variant="secondary" onClick={() => navigate(`/client-admin/shops/${id}`)}>
+        <Button variant="secondary" onClick={() => navigate(`/admin/shops/${id}`)}>
           ← Back
         </Button>
         <h1 className="text-2xl font-bold text-gray-900">Shop Settings</h1>
@@ -96,7 +96,7 @@ const ShopSettings = () => {
             <Button type="submit" variant="primary" disabled={updateSettingsMutation.isPending}>
               {updateSettingsMutation.isPending ? 'Saving...' : 'Save Settings'}
             </Button>
-            <Button type="button" variant="secondary" onClick={() => navigate(`/client-admin/shops/${id}`)}>
+            <Button type="button" variant="secondary" onClick={() => navigate(`/admin/shops/${id}`)}>
               Cancel
             </Button>
           </div>

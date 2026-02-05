@@ -21,7 +21,7 @@ const ServiceManagement = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['services', id],
-    queryFn: () => clientAdminService.getServices(id),
+    queryFn: () => clientAdminService.getShopServices(id),
   });
 
   const addServiceMutation = useMutation({
@@ -51,7 +51,7 @@ const ServiceManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <Button variant="secondary" onClick={() => navigate(`/client-admin/shops/${id}`)}>
+          <Button variant="secondary" onClick={() => navigate(`/admin/shops/${id}`)}>
             ← Back
           </Button>
           <h1 className="text-2xl font-bold text-gray-900">Service Management</h1>
@@ -85,11 +85,10 @@ const ServiceManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${service.price}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        service.active
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${service.active
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
-                      }`}
+                        }`}
                     >
                       {service.active ? 'Active' : 'Inactive'}
                     </span>

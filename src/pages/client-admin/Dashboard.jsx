@@ -6,7 +6,7 @@ import Loading from '../../components/common/Loading';
 const ClientAdminDashboard = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['client-admin-dashboard'],
-    queryFn: clientAdminService.getDashboard,
+    queryFn: clientAdminService.getDashboardStats,
   });
 
   if (isLoading) return <Loading fullScreen />;

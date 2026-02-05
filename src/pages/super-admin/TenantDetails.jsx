@@ -11,7 +11,7 @@ const TenantDetails = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['tenant', id],
-    queryFn: () => superAdminService.getTenant(id),
+    queryFn: () => superAdminService.getTenantDetails(id),
   });
 
   if (isLoading) return <Loading fullScreen />;
@@ -49,13 +49,12 @@ const TenantDetails = () => {
             <label className="text-sm font-medium text-gray-500">Status</label>
             <p className="mt-1">
               <span
-                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  tenant.status === 'active'
+                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${tenant.status === 'active'
                     ? 'bg-green-100 text-green-800'
                     : tenant.status === 'expired'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}
               >
                 {tenant.status}
               </span>

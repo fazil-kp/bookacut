@@ -1,51 +1,58 @@
-import { useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
 import { authService } from '../../services/authService';
-import { useAuthStore } from '../../store/authStore';
-import { useTenantStore } from '../../store/tenantStore';
-import { isPlatformDomain } from '../../utils/domain';
-import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
 import toast from 'react-hot-toast';
+import { useTenantStore } from '../../store/tenantStore';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
   const { tenant } = useTenantStore();
-  const platform = isPlatformDomain();
-  const { register, handleSubmit, formState: { errors }, watch } = useForm();
-
-  const password = watch('password');
-
-  const registerMutation = useMutation({
-    mutationFn: (data) => {
-      const payload = { ...data };
-      // On client domains, attach databaseName so backend can route to correct client DB
-      if (!platform && tenant?.databaseName) {
-        payload.databaseName = tenant.databaseName;
-      }
-      return authService.register(payload);
-    },
-    onSuccess: (data) => {
-      const { user, token } = data;
-      setAuth(user, token);
-      toast.success('Registration successful!');
-      // Customer registration flow on client domains
-      if (!platform) {
-        navigate('/customer/services');
-      } else {
-        // Platform should generally not use this screen, but keep a sane default
-        navigate('/super-admin/dashboard');
-      }
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Registration failed');
-    },
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onSubmit = (data) => {
-    registerMutation.mutate(data);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (formData.password !== formData.confirmPassword) {
+      return toast.error('Passwords do not match');
+    }
+
+    if (!tenant?.id) {
+      return toast.error('Unknown Tenant environment. Cannot register.');
+    }
+
+    setIsLoading(true);
+
+    try {
+      await authService.registerCustomer({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        tenantId: tenant.id
+      });
+
+      toast.success('Registration successful! Please login.');
+      navigate('/login');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Registration failed.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -53,96 +60,86 @@ const Register = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+            Create an account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Register as a customer to book appointments
-          </p>
+          {tenant && (
+            <p className="mt-2 text-center text-sm text-gray-600">for {tenant.name}</p>
+          )}
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm space-y-4">
+            <div className="flex gap-4">
+              <Input
+                name="firstName"
+                type="text"
+                required
+                placeholder="First Name"
+                value={formData.firstName}
+                onChange={handleChange}
+                disabled={isLoading}
+              />
+              <Input
+                name="lastName"
+                type="text"
+                required
+                placeholder="Last Name"
+                value={formData.lastName}
+                onChange={handleChange}
+                disabled={isLoading}
+              />
+            </div>
             <Input
-              label="Name"
-              type="text"
-              required
-              {...register('name', {
-                required: 'Name is required',
-              })}
-              error={errors.name?.message}
-            />
-
-            <Input
-              label="Email address"
+              name="email"
               type="email"
-              autoComplete="email"
               required
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address',
-                },
-              })}
-              error={errors.email?.message}
+              placeholder="Email address"
+              value={formData.email}
+              onChange={handleChange}
+              disabled={isLoading}
             />
-
             <Input
-              label="Phone"
+              name="phone"
               type="tel"
               required
-              {...register('phone', {
-                required: 'Phone is required',
-              })}
-              error={errors.phone?.message}
+              placeholder="Phone Number"
+              value={formData.phone}
+              onChange={handleChange}
+              disabled={isLoading}
             />
-
             <Input
-              label="Password"
+              name="password"
               type="password"
-              autoComplete="new-password"
               required
-              {...register('password', {
-                required: 'Password is required',
-                minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters',
-                },
-              })}
-              error={errors.password?.message}
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              disabled={isLoading}
             />
-
             <Input
-              label="Confirm Password"
+              name="confirmPassword"
               type="password"
-              autoComplete="new-password"
               required
-              {...register('confirmPassword', {
-                required: 'Please confirm your password',
-                validate: (value) =>
-                  value === password || 'Passwords do not match',
-              })}
-              error={errors.confirmPassword?.message}
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              disabled={isLoading}
             />
           </div>
 
           <div>
             <Button
               type="submit"
-              variant="primary"
-              className="w-full"
-              disabled={registerMutation.isPending}
+              fullWidth
+              isLoading={isLoading}
             >
-              {registerMutation.isPending ? 'Registering...' : 'Register'}
+              Register
             </Button>
           </div>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <a href="/login" className="font-medium text-primary-600 hover:text-primary-500">
-                Sign in
-              </a>
-            </p>
+          <div className="text-center text-sm">
+            <a href="/login" className="font-medium text-primary-600 hover:text-primary-500">
+              Already have an account? Sign in
+            </a>
           </div>
         </form>
       </div>
@@ -151,4 +148,3 @@ const Register = () => {
 };
 
 export default Register;
-

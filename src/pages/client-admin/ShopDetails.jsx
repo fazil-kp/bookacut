@@ -10,7 +10,7 @@ const ShopDetails = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['shop', id],
-    queryFn: () => clientAdminService.getShop(id),
+    queryFn: () => clientAdminService.getShopDetails(id),
   });
 
   if (isLoading) return <Loading fullScreen />;
@@ -20,7 +20,7 @@ const ShopDetails = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <Button variant="secondary" onClick={() => navigate('/client-admin/shops')}>
+        <Button variant="secondary" onClick={() => navigate('/admin/shops')}>
           ← Back
         </Button>
         <h1 className="text-2xl font-bold text-gray-900">{shop.name || 'Shop Details'}</h1>
@@ -52,11 +52,10 @@ const ShopDetails = () => {
             <label className="text-sm font-medium text-gray-500">Status</label>
             <p className="mt-1">
               <span
-                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  shop.status === 'active'
+                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${shop.status === 'active'
                     ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
-                }`}
+                  }`}
               >
                 {shop.status}
               </span>
@@ -66,16 +65,16 @@ const ShopDetails = () => {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Button variant="primary" onClick={() => navigate(`/client-admin/shops/${id}/staff`)}>
+        <Button variant="primary" onClick={() => navigate(`/admin/shops/${id}/staff`)}>
           Manage Staff
         </Button>
-        <Button variant="primary" onClick={() => navigate(`/client-admin/shops/${id}/services`)}>
+        <Button variant="primary" onClick={() => navigate(`/admin/shops/${id}/services`)}>
           Manage Services
         </Button>
-        <Button variant="primary" onClick={() => navigate(`/client-admin/shops/${id}/slots`)}>
+        <Button variant="primary" onClick={() => navigate(`/admin/shops/${id}/slots`)}>
           Manage Slots
         </Button>
-        <Button variant="secondary" onClick={() => navigate(`/client-admin/shops/${id}/settings`)}>
+        <Button variant="secondary" onClick={() => navigate(`/admin/shops/${id}/settings`)}>
           Settings
         </Button>
       </div>

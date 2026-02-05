@@ -24,7 +24,7 @@ const BookSlot = () => {
 
   const { data: servicesData, isLoading: servicesLoading } = useQuery({
     queryKey: ['customer-services', shopId],
-    queryFn: () => customerService.getServices(shopId),
+    queryFn: () => customerService.getShopServices(shopId),
     enabled: !!shopId,
   });
 
@@ -33,7 +33,7 @@ const BookSlot = () => {
   const { data: slotsData, isLoading: slotsLoading } = useQuery({
     queryKey: ['customer-slots', shopId, selectedServiceId],
     queryFn: () =>
-      customerService.getSlots(shopId, {
+      customerService.getAvailableSlots(shopId, {
         serviceId: selectedServiceId,
         date: new Date().toISOString().split('T')[0],
       }),

@@ -13,7 +13,7 @@ const ServiceListing = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['customer-services', shopId],
-    queryFn: () => customerService.getServices(shopId),
+    queryFn: () => customerService.getShopServices(shopId),
     enabled: !!shopId && shopId !== 'shop-id-here',
   });
 

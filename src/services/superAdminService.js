@@ -1,17 +1,19 @@
 import api from './api';
 
 export const superAdminService = {
-  getDashboard: async () => {
+  // Dashboard
+  getDashboardStats: async () => {
     const response = await api.get('/super-admin/dashboard');
     return response.data;
   },
 
-  getTenants: async (params = {}) => {
+  // Tenants
+  getAllTenants: async (params = {}) => {
     const response = await api.get('/super-admin/tenants', { params });
     return response.data;
   },
 
-  getTenant: async (tenantId) => {
+  getTenantDetails: async (tenantId) => {
     const response = await api.get(`/super-admin/tenants/${tenantId}`);
     return response.data;
   },
@@ -26,6 +28,18 @@ export const superAdminService = {
     return response.data;
   },
 
+  // Client Admin Management
+  createClientAdmin: async (tenantId, adminData) => {
+    const response = await api.post(`/super-admin/tenants/${tenantId}/admin`, adminData);
+    return response.data;
+  },
+
+  updateClientAdminPassword: async (tenantId, userId, password) => {
+    const response = await api.put(`/super-admin/tenants/${tenantId}/admin/${userId}/password`, { password });
+    return response.data;
+  },
+
+  // Subscription / Payments
   recordPayment: async (tenantId, paymentData) => {
     const response = await api.post(`/super-admin/tenants/${tenantId}/payments`, paymentData);
     return response.data;
@@ -35,5 +49,11 @@ export const superAdminService = {
     const response = await api.get(`/super-admin/tenants/${tenantId}/payments`);
     return response.data;
   },
+
+  updateSubscriptionExpiry: async (tenantId, expiryDate) => {
+    const response = await api.put(`/super-admin/tenants/${tenantId}/subscription`, { subscriptionExpiresAt: expiryDate });
+    return response.data;
+  },
 };
 
+export default superAdminService;

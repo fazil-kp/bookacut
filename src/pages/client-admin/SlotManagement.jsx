@@ -26,7 +26,7 @@ const SlotManagement = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['slots', id],
-    queryFn: () => clientAdminService.getSlots(id),
+    queryFn: () => clientAdminService.getShopSlots(id),
   });
 
   const generateSlotsMutation = useMutation({
@@ -126,13 +126,12 @@ const SlotManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        slot.status === 'available'
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${slot.status === 'available'
                           ? 'bg-green-100 text-green-800'
                           : slot.status === 'blocked'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
                     >
                       {slot.status}
                     </span>

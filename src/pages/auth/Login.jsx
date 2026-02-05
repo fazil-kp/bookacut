@@ -1,58 +1,45 @@
-import { useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
-import { authService } from '../../services/authService';
 import { useAuthStore } from '../../store/authStore';
-import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
 import toast from 'react-hot-toast';
 import { isPlatformDomain } from '../../utils/domain';
 
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { login } = useAuthStore();
   const platform = isPlatformDomain();
 
-  const loginMutation = useMutation({
-    mutationFn: (data) => authService.login(data.email, data.password),
-    onSuccess: (data) => {
-      const { user, token } = data;
-      setAuth(user, token);
-      toast.success('Login successful!');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-      // Redirect based on role and current domain
-      const role = user.role;
+    try {
+      const user = await login({ email, password });
+      toast.success(`Welcome back, ${user.firstName}!`);
 
       if (platform) {
-        // Platform domain is only for platform super admins
-        if (role === 'super_admin' || role === 'platform_super_admin') {
+        if (['super_admin', 'platform_super_admin'].includes(user.role)) {
           navigate('/super-admin/dashboard');
         } else {
-          toast.error('This domain is only for platform administrators.');
-          navigate('/login');
+          toast.error('Access denied on this domain.');
         }
-        return;
-      }
-
-      // Client domains
-      if (role === 'client_admin') {
-        navigate('/admin/dashboard');
-      } else if (role === 'staff') {
-        navigate('/staff/dashboard');
-      } else if (role === 'customer') {
-        navigate('/customer/services');
       } else {
-        navigate('/');
+        if (user.role === 'client_admin') navigate('/admin/dashboard');
+        else if (user.role === 'staff') navigate('/staff/dashboard');
+        else if (user.role === 'customer') navigate('/customer/services');
+        else navigate('/');
       }
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Login failed');
-    },
-  });
 
-  const onSubmit = (data) => {
-    loginMutation.mutate(data);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -60,63 +47,54 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to BookACut
+            Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Multi-Tenant Beauty Parlour & Barber Shop Management
-          </p>
+          {platform && (
+            <p className="mt-2 text-center text-sm text-gray-600">Platform Admin Access</p>
+          )}
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             <Input
-              label="Email address"
+              id="email-address"
+              name="email"
               type="email"
-              autoComplete="email"
               required
-              {...register('email', {
-                required: 'Email is required',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address',
-                },
-              })}
-              error={errors.email?.message}
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
             />
-
             <Input
-              label="Password"
+              id="password"
+              name="password"
               type="password"
-              autoComplete="current-password"
               required
-              {...register('password', {
-                required: 'Password is required',
-                minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters',
-                },
-              })}
-              error={errors.password?.message}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              {!platform && (
+                <a href="/register" className="font-medium text-primary-600 hover:text-primary-500">
+                  Need an account? Register
+                </a>
+              )}
+            </div>
           </div>
 
           <div>
             <Button
               type="submit"
-              variant="primary"
-              className="w-full"
-              disabled={loginMutation.isPending}
+              fullWidth
+              isLoading={isLoading}
             >
-              {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
+              Sign in
             </Button>
-          </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <a href="/register" className="font-medium text-primary-600 hover:text-primary-500">
-                Register
-              </a>
-            </p>
           </div>
         </form>
       </div>
@@ -125,4 +103,3 @@ const Login = () => {
 };
 
 export default Login;
-

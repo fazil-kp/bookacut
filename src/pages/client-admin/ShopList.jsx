@@ -10,7 +10,7 @@ const ShopList = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['shops'],
-    queryFn: clientAdminService.getShops,
+    queryFn: clientAdminService.getAllShops,
   });
 
   if (isLoading) return <Loading fullScreen />;
@@ -21,14 +21,14 @@ const ShopList = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Shops</h1>
-        <Button variant="primary" onClick={() => navigate('/client-admin/shops/new')}>
+        <Button variant="primary" onClick={() => navigate('/admin/shops/new')}>
           Add Shop
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {shops.map((shop) => (
-          <Card key={shop._id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate(`/client-admin/shops/${shop._id}`)}>
+          <Card key={shop._id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate(`/admin/shops/${shop._id}`)}>
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">{shop.name}</h3>
               {shop.status === 'active' ? (

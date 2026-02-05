@@ -19,7 +19,7 @@ const StaffManagement = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['staff', id],
-    queryFn: () => clientAdminService.getStaff(id),
+    queryFn: () => clientAdminService.getShopStaff(id),
   });
 
   const addStaffMutation = useMutation({
@@ -49,7 +49,7 @@ const StaffManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <Button variant="secondary" onClick={() => navigate(`/client-admin/shops/${id}`)}>
+          <Button variant="secondary" onClick={() => navigate(`/admin/shops/${id}`)}>
             ← Back
           </Button>
           <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>

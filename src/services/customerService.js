@@ -1,34 +1,40 @@
 import api from './api';
 
 export const customerService = {
-  getServices: async (shopId) => {
+  // Public / Semi-public (Tenant/Shop context required via URL or header)
+  
+  getShopDetails: async (shopId) => {
+    const response = await api.get(`/customer/shops/${shopId}`);
+    return response.data;
+  },
+
+  getShopServices: async (shopId) => {
     const response = await api.get(`/customer/shops/${shopId}/services`);
     return response.data;
   },
 
-  getSlots: async (shopId, params = {}) => {
+  getAvailableSlots: async (shopId, params = {}) => {
+    // params: { date, serviceId, staffId }
     const response = await api.get(`/customer/shops/${shopId}/slots`, { params });
     return response.data;
   },
 
-  createBooking: async (shopId, bookingData) => {
+  // Authenticated
+  bookSlot: async (shopId, bookingData) => {
+    // bookingData: { slotId, serviceId }
     const response = await api.post(`/customer/shops/${shopId}/bookings`, bookingData);
     return response.data;
   },
 
-  getBookings: async (params = {}) => {
+  getBookingHistory: async (params = {}) => {
     const response = await api.get('/customer/bookings', { params });
     return response.data;
   },
 
-  getBooking: async (bookingId) => {
-    const response = await api.get(`/customer/bookings/${bookingId}`);
-    return response.data;
-  },
-
-  cancelBooking: async (bookingId, reason) => {
-    const response = await api.post(`/customer/bookings/${bookingId}/cancel`, { reason });
+  cancelBooking: async (shopId, bookingId) => {
+    const response = await api.post(`/customer/shops/${shopId}/bookings/${bookingId}/cancel`);
     return response.data;
   },
 };
 
+export default customerService;

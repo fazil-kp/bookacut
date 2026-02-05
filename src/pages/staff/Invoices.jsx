@@ -16,7 +16,7 @@ const StaffInvoices = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['staff-invoices', shopId],
-    queryFn: () => staffService.getInvoices(shopId),
+    queryFn: () => staffService.getShopInvoices(shopId),
     enabled: !!shopId,
   });
 

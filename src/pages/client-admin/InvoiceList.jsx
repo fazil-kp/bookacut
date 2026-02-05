@@ -8,7 +8,7 @@ import Badge from '../../components/common/Badge';
 const InvoiceList = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['invoices'],
-    queryFn: clientAdminService.getInvoices,
+    queryFn: clientAdminService.getAllInvoices,
   });
 
   if (isLoading) return <Loading fullScreen />;

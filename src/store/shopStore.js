@@ -1,7 +1,19 @@
 import { create } from 'zustand';
 
-export const useShopStore = create((set) => ({
-  selectedShop: null,
-  setSelectedShop: (shop) => set({ selectedShop: shop }),
-}));
+import { persist } from 'zustand/middleware';
+
+export const useShopStore = create(
+  persist(
+    (set) => ({
+      shops: [],
+      selectedShop: null,
+
+      setShops: (shops) => set({ shops }),
+      setSelectedShop: (shop) => set({ selectedShop: shop }),
+    }),
+    {
+      name: 'shop-storage',
+    }
+  )
+);
 

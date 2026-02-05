@@ -15,7 +15,7 @@ const StaffBookings = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['staff-bookings', shopId],
-    queryFn: () => staffService.getBookings(shopId),
+    queryFn: () => staffService.getShopBookings(shopId),
     enabled: !!shopId,
   });
 
@@ -77,10 +77,10 @@ const StaffBookings = () => {
                       booking.status === 'completed'
                         ? 'success'
                         : booking.status === 'in_progress'
-                        ? 'info'
-                        : booking.status === 'arrived'
-                        ? 'warning'
-                        : 'warning'
+                          ? 'info'
+                          : booking.status === 'arrived'
+                            ? 'warning'
+                            : 'warning'
                     }
                   >
                     {booking.status}

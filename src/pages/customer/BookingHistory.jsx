@@ -12,21 +12,20 @@ const BookingHistory = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['customer-bookings'],
-    queryFn: customerService.getBookings,
+    queryFn: customerService.getBookingHistory,
   });
 
   const cancelBookingMutation = useMutation({
-    mutationFn: ({ bookingId, reason }) => customerService.cancelBooking(bookingId, reason),
+    mutationFn: ({ shopId, bookingId }) => customerService.cancelBooking(shopId, bookingId),
     onSuccess: () => {
       toast.success('Booking cancelled successfully!');
       queryClient.invalidateQueries(['customer-bookings']);
     },
   });
 
-  const handleCancel = (bookingId) => {
-    const reason = prompt('Please provide a reason for cancellation:');
-    if (reason) {
-      cancelBookingMutation.mutate({ bookingId, reason });
+  const handleCancel = (shopId, bookingId) => {
+    if (confirm('Are you sure you want to cancel this booking?')) {
+      cancelBookingMutation.mutate({ shopId, bookingId });
     }
   };
 
@@ -58,10 +57,10 @@ const BookingHistory = () => {
                       booking.status === 'completed'
                         ? 'success'
                         : booking.status === 'cancelled'
-                        ? 'danger'
-                        : booking.status === 'in_progress'
-                        ? 'info'
-                        : 'warning'
+                          ? 'danger'
+                          : booking.status === 'in_progress'
+                            ? 'info'
+                            : 'warning'
                     }
                   >
                     {booking.status}
@@ -73,7 +72,7 @@ const BookingHistory = () => {
                 <Button
                   size="sm"
                   variant="danger"
-                  onClick={() => handleCancel(booking._id)}
+                  onClick={() => handleCancel(booking.shop?._id, booking._id)}
                 >
                   Cancel Booking
                 </Button>

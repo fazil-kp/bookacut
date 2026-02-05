@@ -11,7 +11,7 @@ const TenantList = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['tenants'],
-    queryFn: superAdminService.getTenants,
+    queryFn: superAdminService.getAllTenants,
   });
 
   if (isLoading) return <Loading fullScreen />;

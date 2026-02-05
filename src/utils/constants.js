@@ -1,6 +1,6 @@
 // API endpoints
 // For multi-tenant setup we default to relative /api, so each domain hits its own tenant-aware backend.
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || window.location.origin;
 
 export const USER_ROLES = {
