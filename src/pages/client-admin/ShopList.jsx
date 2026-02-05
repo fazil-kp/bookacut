@@ -10,7 +10,7 @@ const ShopList = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['shops'],
-    queryFn: clientAdminService.getAllShops,
+    queryFn: clientAdminService.getShops,
   });
 
   if (isLoading) return <Loading fullScreen />;

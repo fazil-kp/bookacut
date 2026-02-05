@@ -21,10 +21,16 @@ export const useAuthStore = create(
             // For now, let's just set the state setters and let the UI/hooks drive the async flow 
             // OR we can implement the thunk pattern here.
             // Let's go with the pattern where the store handles the async call.
-            const { login } = await import('../services/authService'); 
-            const response = await login(credentials);
+            // The authService module exports { authService } and default export.
+            // We need to destructure authService or use default.
+            const { authService } = await import('../services/authService'); 
+            const response = await authService.login(credentials);
             if (response.token) {
                  const { user, token } = response;
+                 // Sync to localStorage for api.js
+                 localStorage.setItem('token', token);
+                 localStorage.setItem('user', JSON.stringify(user));
+                 
                  set({ 
                      user, 
                      token, 
@@ -40,6 +46,10 @@ export const useAuthStore = create(
       },
 
       setAuth: (user, token) => {
+        // Sync to localStorage
+        if (token) localStorage.setItem('token', token);
+        if (user) localStorage.setItem('user', JSON.stringify(user));
+        
         set({ 
             user, 
             token, 

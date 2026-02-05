@@ -2,7 +2,7 @@ import api from './api';
 
 export const authService = {
   login: async (credentials) => {
-    // Backend expects { email, password }
+    // Backend expects { email, password, databaseName? }
     const response = await api.post('/auth/login', credentials);
     // Backend returns { success: true, token, user }
     return response.data;

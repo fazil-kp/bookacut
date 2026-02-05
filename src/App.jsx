@@ -15,6 +15,7 @@ import SuperAdminDashboard from './pages/super-admin/Dashboard';
 import TenantList from './pages/super-admin/TenantList';
 import TenantDetails from './pages/super-admin/TenantDetails';
 import RecordPayment from './pages/super-admin/RecordPayment';
+import CreateTenant from './pages/super-admin/CreateTenant';
 
 // Client Admin pages (client domain, /admin area)
 import ClientAdminDashboard from './pages/client-admin/Dashboard';
@@ -85,6 +86,7 @@ function AppRoutes() {
                   <Routes>
                     <Route path="dashboard" element={<SuperAdminDashboard />} />
                     <Route path="tenants" element={<TenantList />} />
+                    <Route path="tenants/new" element={<CreateTenant />} />
                     <Route path="tenants/:id" element={<TenantDetails />} />
                     <Route path="tenants/:id/payment" element={<RecordPayment />} />
                     <Route path="*" element={<Navigate to="/super-admin/dashboard" />} />
@@ -114,6 +116,7 @@ function AppRoutes() {
         <>
           {/* Public customer-facing routes */}
           <Route path="/" element={<ServiceListing />} />
+          <Route path="/shop/:shopId" element={<ServiceListing />} />
 
           {/* Customer authenticated area */}
           <Route

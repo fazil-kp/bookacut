@@ -1,25 +1,25 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
-import Button from '../../components/common/Button';
-import Input from '../../components/common/Input';
-import toast from 'react-hot-toast';
-import { isPlatformDomain } from '../../utils/domain';
+import { useLocation } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuthStore();
   const platform = isPlatformDomain();
+
+  // Shop context passed from navigation
+  const databaseName = location.state?.databaseName;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const user = await login({ email, password });
+      // Pass databaseName if available to help backend find the user
+      const user = await login({ email, password, databaseName });
       toast.success(`Welcome back, ${user.firstName}!`);
 
       if (platform) {

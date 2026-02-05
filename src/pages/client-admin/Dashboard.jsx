@@ -3,10 +3,30 @@ import { clientAdminService } from '../../services/clientAdminService';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 
+import { useEffect } from 'react';
+import { useShopStore } from '../../store/shopStore';
+
 const ClientAdminDashboard = () => {
+  const { selectedShop, setSelectedShop } = useShopStore();
+
+  // Fetch shops if none selected, to default to the first one
+  const { data: shopsData } = useQuery({
+    queryKey: ['shops'],
+    queryFn: clientAdminService.getShops,
+    enabled: !selectedShop,
+  });
+
+  useEffect(() => {
+    // Auto-select first shop if none selected and shops are available
+    if (!selectedShop && shopsData?.shops?.length > 0) {
+      setSelectedShop(shopsData.shops[0]);
+    }
+  }, [shopsData, selectedShop, setSelectedShop]);
+
   const { data, isLoading } = useQuery({
-    queryKey: ['client-admin-dashboard'],
-    queryFn: clientAdminService.getDashboardStats,
+    queryKey: ['client-admin-dashboard', selectedShop?._id],
+    queryFn: () => clientAdminService.getDashboardStats(selectedShop._id),
+    enabled: !!selectedShop?._id,
   });
 
   if (isLoading) return <Loading fullScreen />;

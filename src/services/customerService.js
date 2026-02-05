@@ -1,8 +1,13 @@
 import api from './api';
 
 export const customerService = {
-  // Public / Semi-public (Tenant/Shop context required via URL or header)
+  // Public / Semi-public (Tenant/Shop context required via URL or header for some)
   
+  getAllShops: async () => {
+    const response = await api.get('/customer/shops');
+    return response.data;
+  },
+
   getShopDetails: async (shopId) => {
     const response = await api.get(`/customer/shops/${shopId}`);
     return response.data;
